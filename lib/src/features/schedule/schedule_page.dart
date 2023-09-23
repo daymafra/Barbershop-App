@@ -4,19 +4,23 @@ import 'package:dw_barbershop/src/core/ui/helpers/form_helper.dart';
 import 'package:dw_barbershop/src/core/ui/helpers/messages.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/avatar_widget.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/hours_panel.dart';
+import 'package:dw_barbershop/src/features/schedule/schedule_state.dart';
+import 'package:dw_barbershop/src/features/schedule/schedule_vm.dart';
 import 'package:dw_barbershop/src/features/schedule/widgets/schedule_calendar.dart';
+import 'package:dw_barbershop/src/model/user_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:validatorless/validatorless.dart';
 
-class SchedulePage extends StatefulWidget {
+class SchedulePage extends ConsumerStatefulWidget {
   const SchedulePage({super.key});
 
   @override
-  State<SchedulePage> createState() => _SchedulePageState();
+  ConsumerState<SchedulePage> createState() => _SchedulePageState();
 }
 
-class _SchedulePageState extends State<SchedulePage> {
+class _SchedulePageState extends ConsumerState<SchedulePage> {
   var dateFormat = DateFormat('dd/MM/yyyy');
   var showCalendar = false;
   final formKey = GlobalKey<FormState>();
@@ -32,6 +36,32 @@ class _SchedulePageState extends State<SchedulePage> {
 
   @override
   Widget build(BuildContext context) {
+    final userModel = ModalRoute.of(context)!.settings.arguments as UserModel;
+    final scheduleVM = ref.watch(scheduleVmProvider.notifier);
+
+    final employeeData = switch (userModel) {
+      UserModelADM(:final workDays, :final workHours) => (
+          workDays: workDays!,
+          workHours: workHours!
+        ),
+      UserModelEmployee(:final workDays, :final workHours) => (
+          workDays: workDays,
+          workHours: workHours
+        )
+    };
+
+    ref.listen(scheduleVmProvider.select((state) => state.status), (_, status) {
+      switch (status) {
+        case ScheduleStateStatus.initial:
+          break;
+        case ScheduleStateStatus.success:
+          Messages.showSuccess('Cliente agendado com sucesso', context);
+          Navigator.of(context).pop();
+        case ScheduleStateStatus.error:
+          Messages.showError('Erro ao registrar agendamento', context);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agendar cliente'),
@@ -48,9 +78,9 @@ class _SchedulePageState extends State<SchedulePage> {
                   const SizedBox(
                     height: 24,
                   ),
-                  const Text(
-                    'Nome e Sobrenome',
-                    style: TextStyle(
+                  Text(
+                    userModel.name,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
                     ),
@@ -104,9 +134,11 @@ class _SchedulePageState extends State<SchedulePage> {
                           okPressed: (DateTime value) {
                             setState(() {
                               dateEC.text = dateFormat.format(value);
+                              scheduleVM.dateSelect(value);
                               showCalendar = false;
                             });
                           },
+                          workDays: employeeData.workDays,
                         ),
                       ],
                     ),
@@ -117,8 +149,8 @@ class _SchedulePageState extends State<SchedulePage> {
                   HoursPanel.singleSelection(
                     startTime: 6,
                     endTime: 23,
-                    onHourPressed: (hour) {},
-                    enabledTimes: const [6, 7, 8],
+                    onHourPressed: scheduleVM.hourSelect,
+                    enabledTimes: employeeData.workHours,
                   ),
                   const SizedBox(
                     height: 24,
@@ -131,7 +163,18 @@ class _SchedulePageState extends State<SchedulePage> {
                         case null || false:
                           Messages.showError('Dados incompletos', context);
                         case true:
-                        //chamada do VM
+                          final hourSelected = ref.watch(scheduleVmProvider
+                              .select((state) => state.scheduleHour != null));
+
+                          if (hourSelected) {
+                            scheduleVM.register(
+                                userModel: userModel,
+                                clientName: clientEC.text);
+                          } else {
+                            Messages.showError(
+                                'Por favor, selecione um horário de atendimento',
+                                context);
+                          }
                       }
                     },
                     child: const Text('AGENDAR'),

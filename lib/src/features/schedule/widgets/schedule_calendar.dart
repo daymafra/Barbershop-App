@@ -6,11 +6,13 @@ import 'package:table_calendar/table_calendar.dart';
 class ScheduleCalendar extends StatefulWidget {
   final VoidCallback cancelPressed;
   final ValueChanged<DateTime> okPressed;
+  final List<String> workDays;
 
   const ScheduleCalendar({
     super.key,
     required this.cancelPressed,
     required this.okPressed,
+    required this.workDays,
   });
 
   @override
@@ -19,6 +21,26 @@ class ScheduleCalendar extends StatefulWidget {
 
 class _ScheduleCalendarState extends State<ScheduleCalendar> {
   DateTime? selectedDay;
+  late final List<int> weekDaysEnabled;
+
+  int convertWeekDay(String weekday) {
+    return switch (weekday.toLowerCase()) {
+      'seg' => DateTime.monday,
+      'ter' => DateTime.tuesday,
+      'qua' => DateTime.wednesday,
+      'qui' => DateTime.thursday,
+      'sex' => DateTime.friday,
+      'sab' => DateTime.saturday,
+      'dom' => DateTime.sunday,
+      _ => 0
+    };
+  }
+
+  @override
+  void initState() {
+    weekDaysEnabled = widget.workDays.map(convertWeekDay).toList();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +62,9 @@ class _ScheduleCalendarState extends State<ScheduleCalendar> {
             locale: 'PT_BR',
             availableCalendarFormats: const {
               CalendarFormat.month: 'Month',
+            },
+            enabledDayPredicate: (day) {
+              return weekDaysEnabled.contains(day.weekday);
             },
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
