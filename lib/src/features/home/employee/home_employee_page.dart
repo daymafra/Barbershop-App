@@ -2,6 +2,7 @@ import 'package:dw_barbershop/src/core/providers/application_providers.dart';
 import 'package:dw_barbershop/src/core/ui/constants.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/avatar_widget.dart';
 import 'package:dw_barbershop/src/core/ui/widgets/barbershop_loader.dart';
+import 'package:dw_barbershop/src/features/home/employee/home_employee_provider.dart';
 import 'package:dw_barbershop/src/model/user_model.dart';
 import 'package:dw_barbershop/src/features/home/widgets/home_header.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,7 @@ class HomeEmployeePage extends ConsumerWidget {
         },
         loading: () => const BarbershopLoader(),
         data: (user) {
-          final UserModel(:name) = user;
+          final UserModel(:id, :name) = user;
           return CustomScrollView(
             slivers: [
               const SliverToBoxAdapter(
@@ -56,18 +57,36 @@ class HomeEmployeePage extends ConsumerWidget {
                           border: Border.all(color: ColorsConstants.grey),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              '5',
-                              style: TextStyle(
-                                fontSize: 32,
-                                color: ColorsConstants.brow,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Consumer(
+                              builder: (context, ref, child) {
+                                final totalAsync = ref
+                                    .watch(GetTotalSchedulesTodayProvider(id));
+                                return totalAsync.when(
+                                  error: (error, stackTrace) {
+                                    return const Center(
+                                      child: Text(
+                                        'Erro ao carregar total de agendamentos',
+                                      ),
+                                    );
+                                  },
+                                  loading: () => const BarbershopLoader(),
+                                  data: (totalSchedule) {
+                                    return Text(
+                                      '$totalSchedule',
+                                      style: const TextStyle(
+                                        fontSize: 32,
+                                        color: ColorsConstants.brow,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                            Text(
+                            const Text(
                               'Hoje',
                               style: TextStyle(
                                 fontSize: 14,
