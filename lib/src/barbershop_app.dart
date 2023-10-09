@@ -6,10 +6,12 @@ import 'package:dw_barbershop/src/features/auth/login/login_page.dart';
 import 'package:dw_barbershop/src/features/auth/register/barbershop/barbershop_register_page.dart';
 import 'package:dw_barbershop/src/features/auth/register/user/user_register_page.dart';
 import 'package:dw_barbershop/src/features/employee/register/employee_register_page.dart';
+import 'package:dw_barbershop/src/features/employee/schedule/employee_schedule_page.dart';
 import 'package:dw_barbershop/src/features/home/adm/home_adm_page.dart';
 import 'package:dw_barbershop/src/features/schedule/schedule_page.dart';
 import 'package:dw_barbershop/src/features/splash/splash_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class BarbeshopApp extends StatelessWidget {
   const BarbeshopApp({super.key});
@@ -32,8 +34,16 @@ class BarbeshopApp extends StatelessWidget {
             '/home/adm': (_) => const HomeAdmPage(),
             '/home/employee': (_) => const Text('Employee'),
             '/employee/register': (_) => const EmployeeRegisterPage(),
+            '/employee/schedule': (_) => const EmployeeSchedulePage(),
             '/schedule': (_) => const SchedulePage(),
           },
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('pt', 'BR')],
+          locale: const Locale('pt', 'BR'),
         );
       },
     );
