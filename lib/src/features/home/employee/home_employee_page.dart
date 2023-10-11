@@ -73,6 +73,7 @@ class HomeEmployeePage extends ConsumerWidget {
                                     );
                                   },
                                   loading: () => const BarbershopLoader(),
+                                  skipLoadingOnRefresh: false,
                                   data: (totalSchedule) {
                                     return Text(
                                       '$totalSchedule',
@@ -103,9 +104,10 @@ class HomeEmployeePage extends ConsumerWidget {
                         style: ElevatedButton.styleFrom(
                           minimumSize: const Size.fromHeight(56),
                         ),
-                        onPressed: () {
-                          Navigator.of(context)
+                        onPressed: () async {
+                          await Navigator.of(context)
                               .pushNamed('/schedule', arguments: user);
+                          ref.invalidate(getTotalSchedulesTodayProvider);
                         },
                         child: const Text('AGENDAR CLIENTE'),
                       ),
