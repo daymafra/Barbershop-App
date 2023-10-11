@@ -6,6 +6,8 @@ part 'home_employee_provider.g.dart';
 @riverpod
 Future<int> getTotalSchedulesToday(
     GetTotalSchedulesTodayRef ref, int userId) async {
+  await Future.delayed(const Duration(seconds: 1));
+
   final DateTime(:year, :month, :day) = DateTime.now();
 
   final filter = (
